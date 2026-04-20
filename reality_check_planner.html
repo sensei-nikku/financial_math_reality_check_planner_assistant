@@ -1,0 +1,1397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reality Check Planner</title>
+<style>
+  :root {
+    --simteal: #2B7A78;
+    --simorange: #E8913A;
+    --lightteal: #D0E8E6;
+    --lightorange: #FAE5D0;
+    --lightgray: #F2F2F2;
+    --darkgray: #444444;
+    --border: #CCCCCC;
+    --white: #FFFFFF;
+    --black: #111111;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    font-size: 17px;
+    color: var(--black);
+    background: var(--lightgray);
+    line-height: 1.5;
+  }
+  .wrap {
+    max-width: 780px;
+    margin: 0 auto;
+    padding: 0 16px 120px 16px;
+  }
+  /* ========== HEADER ========== */
+  header.top {
+    background: var(--simteal);
+    color: var(--white);
+    padding: 14px 16px;
+    margin-bottom: 18px;
+  }
+  header.top .inner {
+    max-width: 780px; margin: 0 auto;
+    display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;
+  }
+  header.top h1 {
+    font-size: 1.15em; margin: 0; font-weight: 700; letter-spacing: 0.5px;
+  }
+  header.top .who {
+    font-size: 0.9em; opacity: 0.95;
+  }
+  /* ========== PROGRESS RAIL ========== */
+  nav.progress {
+    display: flex; gap: 6px; margin-bottom: 22px;
+    padding: 0;
+  }
+  nav.progress .step {
+    flex: 1;
+    padding: 10px 4px;
+    background: var(--white);
+    border: 1px solid var(--border);
+    text-align: center;
+    font-size: 0.78em;
+    font-weight: 600;
+    color: var(--darkgray);
+    border-radius: 3px;
+  }
+  nav.progress .step.done {
+    background: var(--lightteal);
+    border-color: var(--simteal);
+    color: var(--simteal);
+  }
+  nav.progress .step.current {
+    background: var(--simteal);
+    border-color: var(--simteal);
+    color: var(--white);
+  }
+  nav.progress .step .num { display: block; font-size: 1.1em; }
+  /* ========== MAIN STAGE ========== */
+  main .screen {
+    background: var(--white);
+    border: 1px solid var(--border);
+    padding: 26px;
+    margin-bottom: 20px;
+    border-radius: 4px;
+  }
+  h2.sectionbar {
+    background: var(--simteal);
+    color: var(--white);
+    padding: 10px 14px;
+    margin: 0 0 16px 0;
+    font-size: 1.05em;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+  }
+  h3.taskbar {
+    background: var(--simorange);
+    color: var(--white);
+    padding: 8px 14px;
+    margin: 18px 0 12px 0;
+    font-size: 0.98em;
+    font-weight: 700;
+  }
+  .prompt {
+    font-size: 1.05em;
+    margin-bottom: 14px;
+  }
+  .hint {
+    font-size: 0.88em;
+    color: var(--darkgray);
+    margin-top: 4px;
+    font-style: italic;
+  }
+  /* ========== GOAL BOX / INFO BOX ========== */
+  .goalbox {
+    background: var(--lightteal);
+    border: 1.5px solid var(--simteal);
+    padding: 12px 14px;
+    margin: 12px 0;
+    border-radius: 3px;
+  }
+  .warnbox {
+    background: var(--white);
+    border: 1.5px solid var(--simorange);
+    padding: 12px 14px;
+    margin: 12px 0;
+    border-radius: 3px;
+  }
+  /* ========== INPUTS ========== */
+  input[type=text], select {
+    font-family: inherit;
+    font-size: 1em;
+    padding: 10px 12px;
+    border: 1.5px solid var(--border);
+    border-radius: 3px;
+    width: 100%;
+    background: var(--white);
+  }
+  input[type=text]:focus, select:focus {
+    outline: none;
+    border-color: var(--simteal);
+  }
+  label.field {
+    display: block;
+    margin: 10px 0;
+  }
+  label.field .lbl {
+    display: block;
+    font-weight: 600;
+    font-size: 0.95em;
+    margin-bottom: 4px;
+  }
+  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  @media (max-width: 540px) { .row2 { grid-template-columns: 1fr; } }
+  /* ========== CHOICE CARDS ========== */
+  .choices { display: grid; gap: 10px; margin: 8px 0 4px 0; }
+  .choice {
+    display: block;
+    padding: 14px 16px;
+    border: 1.5px solid var(--border);
+    background: var(--white);
+    border-radius: 3px;
+    cursor: pointer;
+    user-select: none;
+  }
+  .choice:hover { background: var(--lightgray); }
+  .choice.selected {
+    border-color: var(--simteal);
+    background: var(--lightteal);
+  }
+  .choice .title { font-weight: 700; display: block; }
+  .choice .desc { font-size: 0.88em; color: var(--darkgray); margin-top: 2px; }
+  /* ========== GATE GRID (Y/N rows) ========== */
+  .gates { margin: 10px 0; }
+  .gate {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 10px;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--lightgray);
+  }
+  .gate:last-child { border-bottom: none; }
+  .gate .q { font-size: 0.95em; }
+  .gate .q .sub { display: block; font-size: 0.85em; color: var(--darkgray); margin-top: 2px; font-style: italic; }
+  .gate .yn { display: flex; gap: 6px; }
+  .gate .yn button {
+    font-family: inherit;
+    font-size: 0.9em;
+    font-weight: 600;
+    padding: 6px 14px;
+    border: 1.5px solid var(--border);
+    background: var(--white);
+    cursor: pointer;
+    border-radius: 3px;
+    min-width: 44px;
+  }
+  .gate .yn button.on {
+    background: var(--simteal);
+    border-color: var(--simteal);
+    color: var(--white);
+  }
+  /* ========== HEADCOUNT GRID ========== */
+  .countgrid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin: 10px 0; }
+  @media (max-width: 540px) { .countgrid { grid-template-columns: repeat(2, 1fr); } }
+  .countgrid .cell { text-align: center; }
+  .countgrid .cell .lbl { font-size: 0.82em; font-weight: 600; color: var(--darkgray); margin-bottom: 4px; }
+  .countgrid .cell input {
+    text-align: center;
+    font-size: 1.25em;
+    font-weight: 700;
+    padding: 8px;
+  }
+  .countgrid .cell.fixed {
+    padding: 8px;
+    background: var(--lightteal);
+    border: 1.5px solid var(--simteal);
+    border-radius: 3px;
+    font-size: 1.25em;
+    font-weight: 700;
+  }
+  /* ========== FOOTER NAV ========== */
+  footer.nav {
+    position: fixed; bottom: 0; left: 0; right: 0;
+    background: var(--white);
+    border-top: 1px solid var(--border);
+    padding: 12px 16px;
+    box-shadow: 0 -2px 8px rgba(0,0,0,0.05);
+    z-index: 100;
+  }
+  footer.nav .inner {
+    max-width: 780px; margin: 0 auto;
+    display: flex; justify-content: space-between; align-items: center; gap: 10px;
+  }
+  .btn {
+    font-family: inherit;
+    font-size: 1em;
+    font-weight: 600;
+    padding: 11px 22px;
+    border: 1.5px solid var(--border);
+    background: var(--white);
+    color: var(--black);
+    cursor: pointer;
+    border-radius: 3px;
+    min-height: 44px;
+  }
+  .btn:hover:not(:disabled) { background: var(--lightgray); }
+  .btn.primary {
+    background: var(--simteal);
+    border-color: var(--simteal);
+    color: var(--white);
+  }
+  .btn.primary:hover:not(:disabled) { filter: brightness(1.1); }
+  .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .btn-small { font-size: 0.85em; padding: 7px 14px; min-height: 0; }
+  .tools { display: flex; gap: 6px; }
+  /* ========== CARD (printable output) ========== */
+  .card {
+    background: var(--white);
+    border: 2px solid var(--simteal);
+    padding: 20px;
+    margin: 16px 0;
+    border-radius: 4px;
+  }
+  .card h3 {
+    background: var(--simteal);
+    color: var(--white);
+    margin: -20px -20px 14px -20px;
+    padding: 12px 18px;
+    font-size: 1.1em;
+  }
+  .card table { width: 100%; border-collapse: collapse; margin: 8px 0; }
+  .card td { padding: 7px 6px; border-bottom: 1px solid var(--lightgray); font-size: 0.95em; vertical-align: top; }
+  .card td:first-child { font-weight: 600; color: var(--darkgray); width: 45%; }
+  .card .packet {
+    margin-top: 14px;
+    padding: 14px;
+    background: var(--lightorange);
+    border: 1.5px solid var(--simorange);
+    border-radius: 3px;
+  }
+  .card .packet .hdr { font-weight: 700; color: var(--simorange); text-transform: uppercase; font-size: 0.82em; letter-spacing: 1px; }
+  .card .packet .name { font-size: 1.2em; font-weight: 700; margin-top: 4px; }
+  /* ========== PRINT ========== */
+  @media print {
+    body { background: white; }
+    header.top, nav.progress, footer.nav, .no-print { display: none !important; }
+    main .screen { border: none; padding: 0; }
+    .card { break-inside: avoid; }
+    .wrap { padding: 0; max-width: none; }
+  }
+  /* ========== MODAL ========== */
+  .modal-bg {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.5);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 200;
+  }
+  .modal {
+    background: var(--white); padding: 24px; border-radius: 4px;
+    max-width: 380px; width: calc(100% - 32px);
+  }
+  .modal h3 { margin-top: 0; }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="inner">
+    <h1>MONEY REALITY CHECK — PLANNER</h1>
+    <div class="who" id="whoLabel">&nbsp;</div>
+  </div>
+</header>
+
+<div class="wrap">
+  <nav class="progress" id="progress"></nav>
+  <main id="stage"></main>
+</div>
+
+<footer class="nav">
+  <div class="inner">
+    <button class="btn" id="backBtn">&larr; Back</button>
+    <div class="tools">
+      <button class="btn btn-small" id="saveBtn" title="Copy your save link so you can paste it into an email to yourself">Copy link</button>
+      <button class="btn btn-small" id="resetBtn" title="Reset (password required)">Reset</button>
+    </div>
+    <button class="btn primary" id="nextBtn">Continue &rarr;</button>
+  </div>
+</footer>
+
+<div id="modalHost"></div>
+
+<script>
+// ============================================================
+// STATE
+// ============================================================
+const SCHEMA = 1;
+const PHASES = [
+  { id:'i', label:'Intro',      full:'Intro' },
+  { id:'1', label:'Phase 1',    full:'Income & Taxes' },
+  { id:'2', label:'Phase 2',    full:'Housing' },
+  { id:'3', label:'Phase 3',    full:'Transportation' },
+  { id:'4', label:'Phase 4',    full:'Living Costs' },
+  { id:'5', label:'Phase 5',    full:'Balance' }
+];
+
+function blankState() {
+  return {
+    v: SCHEMA,
+    ph: 'i',   // current phase
+    st: 0,     // step within phase
+    done: [],  // phases completed
+    nm: '',
+    // intro
+    ht: null,  // 's' | 'p' | 'f'
+    hc: [1,0,0,0], // you, partner, kids, adultDep
+    af: [],    // aspiration flags
+    // phase 1 — income & taxes
+    loc: '',
+    job: '',
+    ig: { sw:null, se:null, pw:null, pe:null, aw:null, ot:null, nt:null, po:null },
+    fs: null,  // 's' | 'mfj' | 'hoh'
+    // phase 2 — housing
+    hp: null,  // 'rm'|'rs'|'bm'|'om'|'oo'
+    br: null,  // bedroom count
+    pets: null, // 'none'|'few'|'many'
+    // phase 3 — transport (later)
+    ls: null, tm: null, tpt: null,
+    // phase 4 — living (later)
+    lg: { med:null, edu:null, crt:null, rel:null, sub:null },
+    // results captured from packets
+    results: { W:null, MB:null, HB:null, TB:null, LB:null }
+  };
+}
+let state = blankState();
+
+// ============================================================
+// SAVE / LOAD
+// Primary: URL hash (works on Chromebooks where localStorage is flaky,
+// and survives reloads on normal deploys).
+// Fallback: localStorage (for sandboxed environments like about:srcdoc
+// where replaceState is blocked — e.g. Claude artifact preview).
+// If both fail, state is kept in memory only for this session.
+// ============================================================
+const LS_KEY = 'rc_planner_v' + SCHEMA;
+let urlSaveDisabled = false;  // flipped true after first replaceState failure
+let lsSaveDisabled  = false;  // flipped true after first localStorage failure
+let saveMode = 'url';          // 'url' | 'local' | 'memory'
+
+// Safe log helper — some preview sandboxes only implement a subset of console methods.
+function safeLog(msg) {
+  try {
+    if (typeof console !== 'undefined') {
+      const fn = console.log || console.warn || console.error;
+      if (typeof fn === 'function') fn.call(console, msg);
+    }
+  } catch(e) { /* nothing we can do */ }
+}
+
+function encodeState() {
+  const s = JSON.stringify(state);
+  return btoa(unescape(encodeURIComponent(s)));
+}
+function decodeState(encoded) {
+  const s = decodeURIComponent(escape(atob(encoded)));
+  const obj = JSON.parse(s);
+  if (obj.v !== SCHEMA) throw new Error('schema mismatch');
+  return obj;
+}
+
+function saveState() {
+  // Try URL hash first unless we've given up on it this session
+  if (!urlSaveDisabled) {
+    try {
+      history.replaceState(null, '', '#' + encodeState());
+      saveMode = 'url';
+      return;
+    } catch(e) {
+      urlSaveDisabled = true;
+      safeLog('[planner] URL save unavailable (likely sandboxed iframe); falling back to localStorage.');
+    }
+  }
+  // Try localStorage
+  if (!lsSaveDisabled) {
+    try {
+      localStorage.setItem(LS_KEY, JSON.stringify(state));
+      saveMode = 'local';
+      return;
+    } catch(e) {
+      lsSaveDisabled = true;
+      safeLog('[planner] localStorage also unavailable; state kept in memory only.');
+    }
+  }
+  // Memory-only fallback
+  saveMode = 'memory';
+}
+
+function normalizeState(obj) {
+  // Deep-merge the blank state with the loaded obj so any newly-added keys
+  // (e.g. when the gate schema grows) get defaults instead of undefined.
+  // Nested objects like ig / lg / hc / results need field-level merging;
+  // Object.assign alone would wholesale-replace them.
+  const base = blankState();
+  const out = Object.assign({}, base, obj);
+  // Migrate ig: drop any obsolete keys (old shape had pt, nw), keep only current keys
+  const newIg = Object.assign({}, base.ig);
+  if (obj && obj.ig) {
+    for (const k of Object.keys(newIg)) {
+      if (k in obj.ig) newIg[k] = obj.ig[k];
+    }
+  }
+  out.ig = newIg;
+  // Same field-level merge for other nested objects
+  if (obj && obj.lg) out.lg = Object.assign({}, base.lg, obj.lg);
+  if (obj && obj.results) out.results = Object.assign({}, base.results, obj.results);
+  if (obj && Array.isArray(obj.hc)) out.hc = obj.hc.slice(0, 4).concat(base.hc.slice(obj.hc.length));
+  return out;
+}
+
+function loadState() {
+  // Try URL hash first
+  try {
+    const h = location.hash.replace(/^#/, '');
+    if (h) {
+      const obj = decodeState(h);
+      state = normalizeState(obj);
+      return true;
+    }
+  } catch(e) { /* fall through */ }
+  // Fall back to localStorage
+  try {
+    const raw = localStorage.getItem(LS_KEY);
+    if (raw) {
+      const obj = JSON.parse(raw);
+      if (obj.v === SCHEMA) {
+        state = normalizeState(obj);
+        return true;
+      }
+    }
+  } catch(e) { /* fall through */ }
+  return false;
+}
+
+// ============================================================
+// COPY TO CLIPBOARD
+// Universal — works in every modern browser including sandboxed iframes.
+// No mailto, no Gmail protocol handlers, no email capture. Student copies
+// the text and pastes into Gmail / Google Docs / wherever they want it.
+// ============================================================
+async function copyText(text) {
+  try {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      await navigator.clipboard.writeText(text);
+      return true;
+    }
+  } catch(e) { /* fall through to execCommand */ }
+  try {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.setAttribute('readonly', '');
+    ta.style.position = 'fixed';
+    ta.style.left = '-9999px';
+    document.body.appendChild(ta);
+    ta.focus();
+    ta.select();
+    const ok = document.execCommand('copy');
+    document.body.removeChild(ta);
+    return ok;
+  } catch(e) { return false; }
+}
+
+// Swap a button to "Copied ✓" for a moment after a successful copy.
+async function copyAndFlash(btn, text) {
+  const ok = await copyText(text);
+  const orig = btn.textContent;
+  btn.textContent = ok ? 'Copied ✓' : 'Copy failed';
+  btn.disabled = true;
+  setTimeout(() => {
+    btn.textContent = orig;
+    btn.disabled = false;
+  }, 1400);
+}
+
+// ----- Plain-text card builders -----
+function ynText(k) { return state.ig[k] === 'Y' ? 'Y — complete this task' : 'N — write $0, skip this task'; }
+function htText()  { return { s:'Single', p:'Partnered', f:'Family' }[state.ht] || '—'; }
+function fsText()  { return { s:'Single', mfj:'Married Filing Jointly', hoh:'Head of Household' }[state.fs] || '—'; }
+function aspText() {
+  if (state.af.length === 0) return '(none marked)';
+  if (state.af.includes('n')) return 'Nothing (realistic current life)';
+  const map = { j:'Job', c:'City', h:'Housing', t:'Transportation' };
+  return state.af.map(a => map[a]).filter(Boolean).join(', ');
+}
+function hpText() {
+  return { rm:'Rent — Moving (new rental)',
+           rs:'Rent — Staying (current lease)',
+           bm:'Buy — Moving (purchasing)',
+           om:'Own — still paying mortgage',
+           oo:'Own — outright, no mortgage' }[state.hp] || '—';
+}
+function packetForHp() {
+  if (state.hp === 'rm' || state.hp === 'rs') return 'Section 2 — Rent';
+  if (state.hp === 'bm') return 'Section 2 — Buy';
+  if (state.hp === 'om' || state.hp === 'oo') return 'Section 2 — Own';
+  return '—';
+}
+function petsText() {
+  return { none:'None', few:'1–2 pets', many:'3+ pets' }[state.pets] || '—';
+}
+function money(n) {
+  if (n === null || n === undefined || isNaN(n)) return '—';
+  return '$' + Number(n).toLocaleString('en-US', {minimumFractionDigits: 0, maximumFractionDigits: 2});
+}
+
+function buildIntroCardText() {
+  return [
+    'REALITY CHECK — INTRO SNAPSHOT',
+    '',
+    'Name: ' + (state.nm || '—'),
+    'Household type: ' + htText(),
+    'You: 1',
+    'Partner: ' + state.hc[1],
+    'Children under 18: ' + state.hc[2],
+    'Adult dependents: ' + state.hc[3],
+    'Household Size [HS]: ' + totalHS(),
+    'Aspirational about: ' + aspText(),
+    '',
+    'Up next: Phase 1 — Income & Taxes',
+    '',
+    '---',
+    'Resume the planner anytime by clicking here:',
+    location.href
+  ].join('\n');
+}
+
+function buildP1CardText() {
+  return [
+    'REALITY CHECK — PHASE 1 CARD (INCOME & TAXES)',
+    '',
+    'Name: ' + (state.nm || '—'),
+    'Household type: ' + htText(),
+    'Household Size [HS]: ' + totalHS(),
+    'City [L]: ' + (state.loc || '—'),
+    'Job [C]: ' + (state.job || '—'),
+    'Filing status: ' + fsText(),
+    '',
+    'PRIMARY INCOME (YOU)',
+    '  W-2 wages [SW]:            ' + ynText('sw'),
+    '  Self-employment [SE]:      ' + ynText('se'),
+    '',
+    'PARTNER INCOME',
+    '  Partner W-2 [PW]:          ' + ynText('pw'),
+    '  Partner self-emp [PE]:     ' + ynText('pe'),
+    '',
+    'OTHER GATES',
+    '  Additional wages [AW]:     ' + ynText('aw'),
+    '  Other taxable [OT]:        ' + ynText('ot'),
+    '  Non-taxable income [NTI]:  ' + ynText('nt'),
+    '  Payments out [PO]:         ' + ynText('po'),
+    '',
+    'PACKET TO GRAB: Section 1 — Income & Taxes',
+    '',
+    'When you finish the packet, come back to the planner with your',
+    'final [MB] (monthly budget) to start Phase 2.',
+    '',
+    '---',
+    'Resume the planner anytime by clicking here:',
+    location.href
+  ].join('\n');
+}
+
+function buildP2CardText() {
+  return [
+    'REALITY CHECK — PHASE 2 CARD (HOUSING)',
+    '',
+    'Name: ' + (state.nm || '—'),
+    'City [L]: ' + (state.loc || '—'),
+    'Household Size [HS]: ' + totalHS(),
+    'Monthly Budget [MB] from Section 1: ' + money(state.results.MB),
+    '',
+    'HOUSING DECISIONS',
+    '  Path: ' + hpText(),
+    '  Bedrooms: ' + (state.br || '—'),
+    '  Pets: ' + petsText(),
+    '',
+    'PACKET TO GRAB: ' + packetForHp(),
+    '',
+    'When you finish the packet, come back with your final [HB]',
+    '(monthly housing budget) to start Phase 3.',
+    '',
+    '---',
+    'Resume the planner anytime by clicking here:',
+    location.href
+  ].join('\n');
+}
+
+function buildSaveLinkText() {
+  const phNow = PHASES.find(p => p.id === state.ph);
+  const phLabel = phNow ? phNow.full : '(unknown)';
+  const doneLabels = state.done.map(id => {
+    const p = PHASES.find(x => x.id === id); return p ? p.full : id;
+  });
+  return [
+    'REALITY CHECK PLANNER — YOUR SAVE LINK',
+    '',
+    'Click this link any time to pick up where you left off:',
+    location.href,
+    '',
+    'Name: ' + (state.nm || '—'),
+    'Currently on: ' + phLabel,
+    'Completed so far: ' + (doneLabels.length ? doneLabels.join(', ') : '(none yet)'),
+    '',
+    'CAPTURED RESULTS',
+    '  Gross income [W]:          ' + money(state.results.W),
+    '  Monthly Budget [MB]:       ' + money(state.results.MB),
+    '  Housing Budget [HB]:       ' + money(state.results.HB),
+    '  Transportation [TB]:       ' + money(state.results.TB),
+    '  Living costs [LB]:         ' + money(state.results.LB)
+  ].join('\n');
+}
+
+// ============================================================
+// SCREEN REGISTRY
+// Each phase has a list of steps. Each step has a render fn and a validate fn.
+// ============================================================
+const SCREENS = {
+  i: [
+    { id:'welcome',    render: renderWelcome,    valid: ()=>state.nm.trim().length > 0 },
+    { id:'household',  render: renderHousehold,  valid: ()=>state.ht !== null },
+    { id:'headcount',  render: renderHeadcount,  valid: ()=>state.hc[0] === 1 },
+    { id:'aspiration', render: renderAspiration, valid: ()=>true },
+    { id:'intro_card', render: renderIntroCard,  valid: ()=>true, isCard: true, nextLabel: 'Start Phase 1 →' }
+  ],
+  '1': [
+    { id:'p1_loc',     render: renderP1Location,       valid: ()=>state.loc.trim().length > 0 && state.job.trim().length > 0 },
+    { id:'p1_your',    render: renderP1YourIncome,     valid: ()=>state.ig.sw === 'Y' || state.ig.se === 'Y' },
+    { id:'p1_partner', render: renderP1PartnerIncome,  valid: ()=>true },
+    { id:'p1_other',   render: renderP1OtherGates,     valid: ()=>state.ig.aw !== null && state.ig.ot !== null && state.ig.nt !== null && state.ig.po !== null },
+    { id:'p1_file',    render: renderP1Filing,         valid: ()=>state.fs !== null },
+    { id:'p1_card',    render: renderP1Card,           valid: ()=>true, isCard: true, nextLabel: 'I finished the packet →' },
+    { id:'p1_result', render: renderResultEntry({
+        title: 'PHASE 1 RESULT — ENTER YOUR MONTHLY BUDGET',
+        intro: 'After completing the Section 1 packet, you arrived at a Monthly Budget [MB]. Enter it here so Phase 2 can use it.',
+        fieldLabel: 'Monthly Budget [MB] (annual net income ÷ 12)',
+        varKey: 'MB',
+        varLabel: 'MB',
+        blurb: '<b>This is the ceiling</b> for every spending section that follows. Every decision in Phase 2 (housing), Phase 3 (transport), and Phase 4 (living) is measured against it.'
+      }), valid: ()=>state.results.MB !== null && state.results.MB > 0, nextLabel: 'Start Phase 2 →' }
+  ],
+  '2': [
+    { id:'p2_path',    render: renderP2Path,    valid: ()=>state.hp !== null },
+    { id:'p2_details', render: renderP2Details, valid: ()=>state.br !== null && state.pets !== null },
+    { id:'p2_card',    render: renderP2Card,    valid: ()=>true, isCard: true, nextLabel: 'I finished the packet →' },
+    { id:'p2_result',  render: renderResultEntry({
+        title: 'PHASE 2 RESULT — ENTER YOUR HOUSING BUDGET',
+        intro: 'After completing the Section 2 packet, you arrived at a Housing Budget [HB]. Enter it here so Phase 3 and the final balance check can use it.',
+        fieldLabel: 'Monthly Housing Budget [HB]',
+        varKey: 'HB',
+        varLabel: 'HB',
+        blurb: 'Rule of thumb: under 30% of [MB] is affordable; 30–40% is cost-burdened; over 40% is severe. If yours is over 40%, consider revisiting your Phase 2 choices before moving on.'
+      }), valid: ()=>state.results.HB !== null && state.results.HB > 0, nextLabel: 'Start Phase 3 →' }
+  ],
+  '3': [ { id:'p3_stub', render: renderStub('Phase 3 — Transportation'), valid: ()=>true } ],
+  '4': [ { id:'p4_stub', render: renderStub('Phase 4 — Living Costs'), valid: ()=>true } ],
+  '5': [ { id:'p5_stub', render: renderStub('Phase 5 — Balance'), valid: ()=>true } ]
+};
+
+// ============================================================
+// RENDER HELPERS
+// ============================================================
+function el(tag, attrs={}, ...kids) {
+  const n = document.createElement(tag);
+  for (const k in attrs) {
+    if (k === 'class') n.className = attrs[k];
+    else if (k === 'html') n.innerHTML = attrs[k];
+    else if (k.startsWith('on')) n.addEventListener(k.slice(2), attrs[k]);
+    else n.setAttribute(k, attrs[k]);
+  }
+  for (const kid of kids) {
+    if (kid == null) continue;
+    n.appendChild(typeof kid === 'string' ? document.createTextNode(kid) : kid);
+  }
+  return n;
+}
+function clear(node){ while(node.firstChild) node.removeChild(node.firstChild); }
+
+function renderProgress() {
+  const host = document.getElementById('progress');
+  clear(host);
+  for (const p of PHASES) {
+    const isDone = state.done.includes(p.id);
+    const isCurrent = state.ph === p.id;
+    const cls = 'step' + (isCurrent ? ' current' : '') + (isDone ? ' done' : '');
+    host.appendChild(el('div', {class:cls},
+      el('span', {class:'num'}, p.label),
+      el('span', {}, p.full)
+    ));
+  }
+}
+
+function renderWho() {
+  const lbl = document.getElementById('whoLabel');
+  lbl.textContent = state.nm ? state.nm : '(not named yet)';
+}
+
+// ============================================================
+// INTRO SCREENS
+// ============================================================
+function renderWelcome(host) {
+  host.appendChild(el('div', {class:'screen'},
+    el('h2', {class:'sectionbar'}, 'WELCOME TO REALITY CHECK'),
+    el('div', {class:'goalbox'},
+      el('div', {html:'<b>What is this?</b> A 5-phase project where you build a realistic monthly budget for the life you\'re planning — using real prices from real sources. The math will tell you whether that life fits your income.'})
+    ),
+    el('p', {class:'prompt'}, 'Before every section, you\'ll come here first. This tool asks a few questions, tells you which packet to grab from your teacher, and shows you which values to carry forward. It saves your progress automatically.'),
+    el('h3', {class:'taskbar'}, 'WHAT SHOULD WE CALL YOU?'),
+    el('label', {class:'field'},
+      el('span', {class:'lbl'}, 'Your name'),
+      (() => {
+        const i = el('input', {type:'text', placeholder:'First name is fine', value: state.nm});
+        i.addEventListener('input', e => { state.nm = e.target.value; renderWho(); saveState(); refreshNav(); });
+        return i;
+      })()
+    )
+  ));
+}
+
+function renderHousehold(host) {
+  host.appendChild(el('div', {class:'screen'},
+    el('h2', {class:'sectionbar'}, 'INTRO — HOUSEHOLD TYPE'),
+    el('p', {class:'prompt'}, 'Your household shape affects almost every number later: rent, groceries, taxes, insurance. Pick what fits your real life.'),
+    (() => {
+      const host2 = el('div', {class:'choices'});
+      const opts = [
+        { id:'s', title:'Single',    desc:'No partner, no dependents you claim.' },
+        { id:'p', title:'Partnered', desc:'You and a partner, no children or other dependents.' },
+        { id:'f', title:'Family',    desc:'You have children and/or other dependents.' }
+      ];
+      for (const o of opts) {
+        const c = el('div', {class:'choice' + (state.ht === o.id ? ' selected' : ''), onclick: () => {
+          state.ht = o.id;
+          // default headcount based on type
+          if (o.id === 's') state.hc = [1,0,0,0];
+          if (o.id === 'p' && state.hc[1] === 0) state.hc = [1,1,state.hc[2],state.hc[3]];
+          saveState(); rerender();
+        }},
+          el('span', {class:'title'}, o.title),
+          el('span', {class:'desc'}, o.desc)
+        );
+        host2.appendChild(c);
+      }
+      return host2;
+    })()
+  ));
+}
+
+function renderHeadcount(host) {
+  host.appendChild(el('div', {class:'screen'},
+    el('h2', {class:'sectionbar'}, 'INTRO — HEADCOUNT'),
+    el('p', {class:'prompt'}, 'How many people are in your household? Be precise. This becomes Household Size [HS] — you\'ll use it whenever a cost is per-person.'),
+    el('div', {class:'countgrid'},
+      el('div', {class:'cell'},
+        el('div', {class:'lbl'}, 'You'),
+        el('div', {class:'cell fixed'}, '1')
+      ),
+      el('div', {class:'cell'},
+        el('div', {class:'lbl'}, 'Partner (0 or 1)'),
+        makeCountInput(1)
+      ),
+      el('div', {class:'cell'},
+        el('div', {class:'lbl'}, 'Children under 18'),
+        makeCountInput(2)
+      ),
+      el('div', {class:'cell'},
+        el('div', {class:'lbl'}, 'Adult dependents'),
+        makeCountInput(3)
+      )
+    ),
+    el('div', {class:'goalbox'},
+      el('div', {html: `<b>Household Size [HS] = ${totalHS()}</b>`})
+    ),
+    el('div', {class:'hint'}, '*An adult dependent in a facility (assisted living, nursing home) is still a dependent but not in your home — you\'ll handle that distinction later.')
+  ));
+}
+function makeCountInput(idx) {
+  const i = el('input', {type:'text', inputmode:'numeric', value: String(state.hc[idx])});
+  i.addEventListener('input', e => {
+    let n = parseInt(e.target.value.replace(/\D/g,''), 10);
+    if (isNaN(n) || n < 0) n = 0;
+    if (idx === 1 && n > 1) n = 1; // partner 0 or 1
+    state.hc[idx] = n;
+    saveState();
+    rerender();
+  });
+  return i;
+}
+function totalHS() { return state.hc.reduce((a,b)=>a+b, 0); }
+
+function renderAspiration(host) {
+  host.appendChild(el('div', {class:'screen'},
+    el('h2', {class:'sectionbar'}, 'INTRO — ASPIRATION FLAG'),
+    el('p', {class:'prompt'}, 'Some of what you\'ll pick in this project is probably a stretch — a bigger city than you\'d really move to, a job you\'re still working toward, a house bigger than where you are today. That\'s fine. The point of a Reality Check is to find out where the gap is.'),
+    el('div', {class:'goalbox'},
+      el('div', {html:'<b>Check anything you\'re being ambitious about.</b> You\'ll come back to this at the end of the project.'})
+    ),
+    (() => {
+      const flags = [
+        { id:'j', label:'Job', desc:'The career I\'m planning is a real stretch.' },
+        { id:'c', label:'City', desc:'I\'m planning for a city I couldn\'t afford to move to today.' },
+        { id:'h', label:'Housing', desc:'My housing plan is bigger/nicer than my current situation.' },
+        { id:'t', label:'Transportation', desc:'The transportation I want isn\'t what I currently have.' },
+        { id:'n', label:'Nothing — this is my real life right now', desc:'Everything I\'ll choose matches my actual current situation.' }
+      ];
+      const host2 = el('div', {class:'choices'});
+      for (const f of flags) {
+        const isN = f.id === 'n';
+        const sel = state.af.includes(f.id);
+        const c = el('div', {class:'choice' + (sel ? ' selected' : ''), onclick: () => {
+          if (isN) {
+            state.af = sel ? [] : ['n'];
+          } else {
+            // remove 'n' if any other is picked
+            state.af = state.af.filter(x => x !== 'n');
+            if (sel) state.af = state.af.filter(x => x !== f.id);
+            else state.af.push(f.id);
+          }
+          saveState(); rerender();
+        }},
+          el('span', {class:'title', html: f.label}),
+          el('span', {class:'desc'}, f.desc)
+        );
+        host2.appendChild(c);
+      }
+      return host2;
+    })()
+  ));
+}
+
+function renderIntroCard(host) {
+  const htLabel = { s:'Single', p:'Partnered', f:'Family' }[state.ht] || '';
+  const asp = state.af.length === 0 ? '(none marked)' :
+              state.af.includes('n') ? 'Nothing (realistic current life)' :
+              state.af.map(a => ({j:'Job', c:'City', h:'Housing', t:'Transportation'}[a])).filter(Boolean).join(', ');
+  host.appendChild(el('div', {class:'screen'},
+    el('h2', {class:'sectionbar'}, 'INTRO CARD — KEEP THIS'),
+    el('p', {class:'prompt'}, 'This is your household snapshot for the whole project. Every phase will build on these facts. Print it, write it down, or just keep this tab open — it\'s already saved.'),
+    (() => {
+      const c = el('div', {class:'card'},
+        el('h3', {}, 'REALITY CHECK — INTRO SNAPSHOT'),
+        el('table', {},
+          row('Name', state.nm || '—'),
+          row('Household type', htLabel),
+          row('You', '1'),
+          row('Partner', String(state.hc[1])),
+          row('Children under 18', String(state.hc[2])),
+          row('Adult dependents', String(state.hc[3])),
+          row('Household Size [HS]', String(totalHS())),
+          row('Aspirational about', asp)
+        ),
+        el('div', {class:'packet'},
+          el('div', {class:'hdr'}, 'Up next'),
+          el('div', {class:'name'}, 'Phase 1 — Income & Taxes'),
+          el('div', {class:'desc'}, 'When you\'re ready, click Continue to start Phase 1. Phase 1 will tell you which Section 1 packet to grab.')
+        )
+      );
+      return c;
+    })(),
+    el('div', {class:'no-print'},
+      (() => {
+        const b = el('button', {class:'btn btn-small'}, 'Copy this card');
+        b.addEventListener('click', () => copyAndFlash(b, buildIntroCardText()));
+        return b;
+      })()
+    )
+  ));
+}
+function row(l, v) {
+  return el('tr', {}, el('td', {}, l), el('td', {}, v));
+}
+
+// ============================================================
+// PHASE 1 SCREENS — INCOME & TAXES
+// ============================================================
+function renderP1Location(host) {
+  host.appendChild(el('div', {class:'screen'},
+    el('h2', {class:'sectionbar'}, 'PHASE 1 — WHERE WILL YOU LIVE AND WORK?'),
+    el('p', {class:'prompt'}, 'Pick a city you would realistically live in 5 years from now, and a job you\'re seriously working toward. These lock in every price you\'ll research later — rent, gas, groceries, insurance.'),
+    el('div', {class:'warnbox'},
+      el('div', {html:'<b>Realistic, not fictional.</b> "Phoenix" is fine. "Somewhere warm" is not. "Nurse" is fine. "Famous influencer" is not.'})
+    ),
+    el('label', {class:'field'},
+      el('span', {class:'lbl'}, 'City of residence [L]'),
+      (() => {
+        const i = el('input', {type:'text', placeholder:'e.g. Phoenix, AZ', value: state.loc});
+        i.addEventListener('input', e => { state.loc = e.target.value; saveState(); refreshNav(); });
+        return i;
+      })()
+    ),
+    el('label', {class:'field'},
+      el('span', {class:'lbl'}, 'Job title [C]'),
+      (() => {
+        const i = el('input', {type:'text', placeholder:'e.g. Medical Assistant', value: state.job});
+        i.addEventListener('input', e => { state.job = e.target.value; saveState(); refreshNav(); });
+        return i;
+      })()
+    )
+  ));
+}
+
+// Shared helper — checkbox-style choice (toggles Y/N per ig key)
+function igCheckbox(k, title, desc) {
+  const on = state.ig[k] === 'Y';
+  return el('div', {class:'choice' + (on ? ' selected' : ''), onclick: () => {
+    state.ig[k] = on ? 'N' : 'Y';
+    saveState();
+    rerender();
+  }},
+    el('span', {class:'title'}, (on ? '☑ ' : '☐ ') + title),
+    el('span', {class:'desc'}, desc)
+  );
+}
+
+function renderP1YourIncome(host) {
+  host.appendChild(el('div', {class:'screen'},
+    el('h2', {class:'sectionbar'}, 'PHASE 1 — YOUR PRIMARY INCOME'),
+    el('p', {class:'prompt'}, 'In this scenario, what kind of income will you earn? Check all that apply. At least one must be checked.'),
+    el('div', {class:'warnbox'},
+      el('div', {html:'<b>Both can apply.</b> A day job and a side business are both real for many adults. The math treats them separately because they pay different payroll taxes (W-2 = FICA, 1099 = Self-Employment Tax).'})
+    ),
+    (() => {
+      const h = el('div', {class:'choices'});
+      h.appendChild(igCheckbox('sw', 'W-2 Wages',
+        'Traditional job. Employer sends a paycheck and takes taxes out. You get a W-2 at tax time. This feeds [SW].'));
+      h.appendChild(igCheckbox('se', 'Self-Employment / 1099',
+        'Work for yourself. Gig platforms (Uber, DoorDash), 1099 trades, freelance, commissioned sales, small business. You get a 1099 at tax time. This feeds [SE].'));
+      return h;
+    })()
+  ));
+}
+
+function renderP1PartnerIncome(host) {
+  // Single students skip this — partner income is $0 by definition.
+  if (state.ht === 's') {
+    host.appendChild(el('div', {class:'screen'},
+      el('h2', {class:'sectionbar'}, 'PHASE 1 — PARTNER INCOME'),
+      el('p', {class:'prompt'}, 'You marked your household as Single in the Intro, so partner income is $0. Skip ahead — both [PW] and [PE] will be $0 in the packet.'),
+      el('div', {class:'warnbox'},
+        el('div', {html:'If this is wrong, go back to the Intro and change your household type to Partnered or Family.'})
+      )
+    ));
+    return;
+  }
+  host.appendChild(el('div', {class:'screen'},
+    el('h2', {class:'sectionbar'}, 'PHASE 1 — PARTNER INCOME'),
+    el('p', {class:'prompt'}, 'What kind of income does your partner earn? Check all that apply. If your partner has no income in this scenario, leave both unchecked.'),
+    (() => {
+      const h = el('div', {class:'choices'});
+      h.appendChild(igCheckbox('pw', 'Partner W-2 Wages',
+        'Partner has a traditional job with an employer. Feeds [PW].'));
+      h.appendChild(igCheckbox('pe', 'Partner Self-Employment / 1099',
+        'Partner runs their own business, freelances, or does gig work. Feeds [PE].'));
+      return h;
+    })()
+  ));
+}
+
+function renderP1OtherGates(host) {
+  const gates = [
+    { k:'aw', q:'Is there additional wage income beyond the primary jobs above?',
+            sub:'Second job, seasonal work, reliable overtime, or a teen with a job who contributes to household costs. Feeds [AW].' },
+    { k:'ot', q:'Is there other taxable income (not wages, not self-employment)?',
+            sub:'Interest, dividends, rental income, capital gains, unemployment, severance, royalties. Feeds [OT].' },
+    { k:'nt', q:'Is there non-taxable income?',
+            sub:'Child support received, foster care payments, SSI, SSDI, VA disability, TANF, workers\' comp, GI Bill BAH. Feeds [NTI].' },
+    { k:'po', q:'Are there court-ordered payments going out?',
+            sub:'Child support you pay, alimony out, wage garnishments. Feeds [PO].' }
+  ];
+  host.appendChild(el('div', {class:'screen'},
+    el('h2', {class:'sectionbar'}, 'PHASE 1 — OTHER INCOME GATES'),
+    el('p', {class:'prompt'}, 'Four last Y/N questions. Each "No" means one less task to do in the Section 1 packet.'),
+    (() => {
+      const h = el('div', {class:'gates'});
+      for (const g of gates) {
+        h.appendChild(el('div', {class:'gate'},
+          el('div', {class:'q'},
+            el('span', {}, g.q),
+            el('span', {class:'sub'}, g.sub)
+          ),
+          el('div', {class:'yn'},
+            ynBtn('Y', state.ig[g.k] === 'Y', () => { state.ig[g.k] = 'Y'; saveState(); rerender(); }),
+            ynBtn('N', state.ig[g.k] === 'N', () => { state.ig[g.k] = 'N'; saveState(); rerender(); })
+          )
+        ));
+      }
+      return h;
+    })()
+  ));
+}
+function ynBtn(lbl, on, click) {
+  return el('button', {class: on ? 'on' : '', onclick: click}, lbl);
+}
+
+function renderP1Filing(host) {
+  const opts = [
+    { id:'s',   title:'Single',               desc:'No partner, no dependents you claim.' },
+    { id:'mfj', title:'Married Filing Jointly', desc:'You have a partner and are treating finances as shared.' },
+    { id:'hoh', title:'Head of Household',    desc:'You support dependents and aren\'t filing jointly with a partner.' }
+  ];
+  host.appendChild(el('div', {class:'screen'},
+    el('h2', {class:'sectionbar'}, 'PHASE 1 — FILING STATUS'),
+    el('p', {class:'prompt'}, 'How will you file your taxes? This sets your standard deduction and tax brackets.'),
+    el('div', {class:'warnbox'},
+      el('div', {html:'<b>Match your household type from the Intro.</b> Single &rarr; Single. Partnered &rarr; Married Filing Jointly. Family with no partner &rarr; Head of Household. In real life these have strict IRS rules; for this project we\'re using the common match.'})
+    ),
+    (() => {
+      const h = el('div', {class:'choices'});
+      for (const o of opts) {
+        h.appendChild(el('div', {class:'choice' + (state.fs === o.id ? ' selected' : ''), onclick: () => { state.fs = o.id; saveState(); rerender(); }},
+          el('span', {class:'title'}, o.title),
+          el('span', {class:'desc'}, o.desc)
+        ));
+      }
+      return h;
+    })()
+  ));
+}
+
+function renderP1Card(host) {
+  const fsLabel = { s:'Single', mfj:'Married Filing Jointly', hoh:'Head of Household' }[state.fs] || '';
+  const htLabel = { s:'Single', p:'Partnered', f:'Family' }[state.ht] || '';
+  const gateText = k => state.ig[k] === 'Y' ? 'Y — complete the task' : 'N — write $0, skip the task';
+  const blockLabel = (txt) => el('div', {style:'font-weight:700; font-size:0.92em; color:var(--darkgray); text-transform:uppercase; letter-spacing:1px; margin:14px 0 6px 0;'}, txt);
+
+  host.appendChild(el('div', {class:'screen'},
+    el('h2', {class:'sectionbar'}, 'PHASE 1 CARD — TAKE TO YOUR TEACHER'),
+    el('p', {class:'prompt'}, 'Print this card or write it down. It shows which packet you need and which tasks apply to you. When you finish the Section 1 packet, come back here for Phase 2.'),
+    (() => {
+      const c = el('div', {class:'card'},
+        el('h3', {}, 'PHASE 1 — INCOME & TAXES'),
+        el('table', {},
+          row('Name', state.nm || '—'),
+          row('Household type', htLabel),
+          row('Household Size [HS]', String(totalHS())),
+          row('City [L]', state.loc || '—'),
+          row('Job [C]', state.job || '—'),
+          row('Filing status', fsLabel)
+        ),
+        blockLabel('Primary income (you)'),
+        el('table', {},
+          row('W-2 wages [SW]',        gateText('sw')),
+          row('Self-employment [SE]',  gateText('se'))
+        ),
+        blockLabel('Partner income'),
+        el('table', {},
+          row('Partner W-2 [PW]',      gateText('pw')),
+          row('Partner self-emp [PE]', gateText('pe'))
+        ),
+        blockLabel('Other gates'),
+        el('table', {},
+          row('Additional wages [AW]',     gateText('aw')),
+          row('Other taxable [OT]',        gateText('ot')),
+          row('Non-taxable income [NTI]',  gateText('nt')),
+          row('Payments out [PO]',         gateText('po'))
+        ),
+        el('div', {class:'packet'},
+          el('div', {class:'hdr'}, 'Grab this packet from your teacher'),
+          el('div', {class:'name'}, 'Section 1 — Income & Taxes'),
+          el('div', {class:'desc', style:'margin-top:6px; font-size:0.88em;'}, 'When you finish the packet, come back here. You\'ll need your final [MB] (monthly budget) ready to carry into Phase 2.')
+        )
+      );
+      return c;
+    })(),
+    el('div', {class:'no-print'},
+      (() => {
+        const b = el('button', {class:'btn btn-small'}, 'Copy this card');
+        b.addEventListener('click', () => copyAndFlash(b, buildP1CardText()));
+        return b;
+      })()
+    )
+  ));
+}
+
+// ============================================================
+// RESULT ENTRY PATTERN
+// After each phase card, the student comes back with a key number
+// from the packet (MB after P1, HB after P2, etc.). These screens
+// capture that number into state.results.
+// ============================================================
+function renderResultEntry(opts) {
+  // opts: { title, intro, fieldLabel, varKey, varLabel, blurb }
+  return function(host) {
+    const screen = el('div', {class:'screen'},
+      el('h2', {class:'sectionbar'}, opts.title),
+      el('p', {class:'prompt'}, opts.intro),
+      el('div', {class:'warnbox'},
+        el('div', {html: opts.blurb})
+      ),
+      el('label', {class:'field'},
+        el('span', {class:'lbl'}, opts.fieldLabel),
+        (() => {
+          const wrap = el('div', {style:'display:flex; align-items:center; gap:8px;'},
+            el('span', {style:'font-size:1.2em; font-weight:700; color:var(--darkgray);'}, '$'),
+            (() => {
+              const cur = state.results[opts.varKey];
+              const i = el('input', {type:'text', inputmode:'decimal', placeholder:'e.g. 4200',
+                                      value: (cur === null || cur === undefined) ? '' : String(cur)});
+              i.style.fontSize = '1.2em';
+              i.style.fontWeight = '600';
+              i.addEventListener('input', e => {
+                const raw = e.target.value.replace(/[^0-9.]/g, '');
+                const n = parseFloat(raw);
+                state.results[opts.varKey] = (!isNaN(n) && n >= 0) ? n : null;
+                saveState(); refreshNav();
+              });
+              return i;
+            })()
+          );
+          return wrap;
+        })()
+      )
+    );
+    host.appendChild(screen);
+  };
+}
+
+// ============================================================
+// PHASE 2 SCREENS — HOUSING
+// ============================================================
+function renderP2Path(host) {
+  const opts = [
+    { id:'rm', title:'Rent — Moving',      desc:'You\'ll find a new rental. You\'ll research real listings in Section 2.' },
+    { id:'rs', title:'Rent — Staying',     desc:'You already rent and are staying put. You\'ll record your actual current rent.' },
+    { id:'bm', title:'Buy — Moving',       desc:'You\'re planning to purchase a home. You\'ll work through mortgage math, down payment, and closing costs.' },
+    { id:'om', title:'Own — with Mortgage', desc:'You own the home and still make monthly payments.' },
+    { id:'oo', title:'Own — Outright',     desc:'You own the home free and clear. No mortgage, but you\'ll still budget for property tax, insurance, and maintenance.' }
+  ];
+  host.appendChild(el('div', {class:'screen'},
+    el('h2', {class:'sectionbar'}, 'PHASE 2 — WHAT\'S YOUR HOUSING SITUATION?'),
+    el('p', {class:'prompt'}, 'Pick the path that matches the life you\'re planning. This decides which Section 2 packet you\'ll work from.'),
+    el('div', {class:'goalbox'},
+      el('div', {html: '<b>Your Monthly Budget from Section 1:</b> ' + money(state.results.MB) + ' &mdash; this is the ceiling for all housing costs.'})
+    ),
+    (() => {
+      const h = el('div', {class:'choices'});
+      for (const o of opts) {
+        h.appendChild(el('div', {class:'choice' + (state.hp === o.id ? ' selected' : ''), onclick: () => { state.hp = o.id; saveState(); rerender(); }},
+          el('span', {class:'title'}, o.title),
+          el('span', {class:'desc'}, o.desc)
+        ));
+      }
+      return h;
+    })()
+  ));
+}
+
+function renderP2Details(host) {
+  host.appendChild(el('div', {class:'screen'},
+    el('h2', {class:'sectionbar'}, 'PHASE 2 — BEDROOMS AND PETS'),
+    el('p', {class:'prompt'}, 'These details affect rent and insurance prices. Be realistic — more bedrooms cost more, and many rentals charge pet rent.'),
+    el('h3', {class:'taskbar'}, 'BEDROOMS'),
+    (() => {
+      const h = el('div', {class:'choices'});
+      [1,2,3,4].forEach(n => {
+        const label = n === 4 ? '4 or more bedrooms' : (n + ' bedroom' + (n > 1 ? 's' : ''));
+        h.appendChild(el('div', {class:'choice' + (state.br === n ? ' selected' : ''), onclick: () => { state.br = n; saveState(); rerender(); }},
+          el('span', {class:'title'}, label)
+        ));
+      });
+      return h;
+    })(),
+    el('h3', {class:'taskbar'}, 'PETS'),
+    (() => {
+      const h = el('div', {class:'choices'});
+      [
+        {id:'none', title:'No pets'},
+        {id:'few',  title:'1 or 2 pets'},
+        {id:'many', title:'3 or more pets'}
+      ].forEach(o => {
+        h.appendChild(el('div', {class:'choice' + (state.pets === o.id ? ' selected' : ''), onclick: () => { state.pets = o.id; saveState(); rerender(); }},
+          el('span', {class:'title'}, o.title)
+        ));
+      });
+      return h;
+    })()
+  ));
+}
+
+function renderP2Card(host) {
+  host.appendChild(el('div', {class:'screen'},
+    el('h2', {class:'sectionbar'}, 'PHASE 2 CARD — TAKE TO YOUR TEACHER'),
+    el('p', {class:'prompt'}, 'Copy this card to your notes or paste it into an email to yourself. It shows which Section 2 packet to grab and the values to carry forward.'),
+    (() => {
+      return el('div', {class:'card'},
+        el('h3', {}, 'PHASE 2 — HOUSING'),
+        el('table', {},
+          row('Name', state.nm || '—'),
+          row('City [L]', state.loc || '—'),
+          row('Household Size [HS]', String(totalHS())),
+          row('Monthly Budget [MB]', money(state.results.MB))
+        ),
+        el('div', {style:'margin-top:14px;'},
+          el('div', {style:'font-weight:700; font-size:0.92em; color:var(--darkgray); text-transform:uppercase; letter-spacing:1px; margin-bottom:6px;'}, 'Housing decisions'),
+          el('table', {},
+            row('Path', hpText()),
+            row('Bedrooms', state.br ? (state.br === 4 ? '4+' : String(state.br)) : '—'),
+            row('Pets', petsText())
+          )
+        ),
+        el('div', {class:'packet'},
+          el('div', {class:'hdr'}, 'Grab this packet from your teacher'),
+          el('div', {class:'name'}, packetForHp()),
+          el('div', {class:'desc', style:'margin-top:6px; font-size:0.88em;'}, 'When you finish the packet, come back here with your final [HB] (monthly housing budget) to start Phase 3.')
+        )
+      );
+    })(),
+    el('div', {class:'no-print'},
+      (() => {
+        const b = el('button', {class:'btn btn-small'}, 'Copy this card');
+        b.addEventListener('click', () => copyAndFlash(b, buildP2CardText()));
+        return b;
+      })()
+    )
+  ));
+}
+
+// ============================================================
+// STUB SCREENS
+// ============================================================
+function renderStub(title) {
+  return function(host) {
+    host.appendChild(el('div', {class:'screen'},
+      el('h2', {class:'sectionbar'}, title.toUpperCase() + ' — COMING SOON'),
+      el('p', {class:'prompt'}, 'This phase isn\'t built yet. In the full version, you\'ll answer the questions that decide which Section packet you need.'),
+      el('div', {class:'goalbox'},
+        el('div', {html:'<b>Stub notice:</b> the planner shell, save state, and Phase 1 are all working. Each remaining phase gets built one at a time.'})
+      )
+    ));
+  };
+}
+
+// ============================================================
+// NAVIGATION
+// ============================================================
+function currentStep() {
+  return SCREENS[state.ph][state.st];
+}
+function rerender() {
+  const stage = document.getElementById('stage');
+  clear(stage);
+  const step = currentStep();
+  step.render(stage);
+  renderProgress();
+  renderWho();
+  refreshNav();
+}
+function refreshNav() {
+  const back = document.getElementById('backBtn');
+  const next = document.getElementById('nextBtn');
+  const phIdx = PHASES.findIndex(p => p.id === state.ph);
+  const isFirst = phIdx === 0 && state.st === 0;
+  const step = currentStep();
+  const steps = SCREENS[state.ph];
+  const isLastStep = state.st === steps.length - 1;
+  const isLastPhase = phIdx === PHASES.length - 1;
+
+  back.disabled = isFirst;
+  next.disabled = !step.valid();
+
+  if (step.nextLabel) next.textContent = step.nextLabel;
+  else if (isLastStep && !isLastPhase) next.textContent = 'Start ' + PHASES[phIdx+1].full + ' →';
+  else if (isLastStep && isLastPhase) next.textContent = 'Finish';
+  else next.textContent = 'Continue →';
+}
+function goNext() {
+  const step = currentStep();
+  if (!step.valid()) return;
+  const steps = SCREENS[state.ph];
+  if (state.st < steps.length - 1) {
+    state.st += 1;
+  } else {
+    // move to next phase
+    if (!state.done.includes(state.ph)) state.done.push(state.ph);
+    const phIdx = PHASES.findIndex(p => p.id === state.ph);
+    if (phIdx < PHASES.length - 1) {
+      state.ph = PHASES[phIdx+1].id;
+      state.st = 0;
+    }
+  }
+  saveState();
+  rerender();
+  window.scrollTo(0, 0);
+}
+function goBack() {
+  if (state.st > 0) {
+    state.st -= 1;
+  } else {
+    const phIdx = PHASES.findIndex(p => p.id === state.ph);
+    if (phIdx > 0) {
+      state.ph = PHASES[phIdx-1].id;
+      state.st = SCREENS[state.ph].length - 1;
+    }
+  }
+  saveState();
+  rerender();
+  window.scrollTo(0, 0);
+}
+
+// ============================================================
+// RESET MODAL
+// ============================================================
+function promptReset() {
+  const host = document.getElementById('modalHost');
+  clear(host);
+  const mb = el('div', {class:'modal-bg'});
+  const pw = el('input', {type:'password', placeholder:'password'});
+  const msg = el('div', {style:'color:#c33; font-size:0.85em; min-height:18px; margin-top:6px;'});
+  const modal = el('div', {class:'modal'},
+    el('h3', {}, 'Reset everything?'),
+    el('p', {style:'font-size:0.95em;'}, 'This erases all answers and starts the planner over. Enter the teacher password to confirm.'),
+    pw,
+    msg,
+    el('div', {style:'display:flex; gap:10px; margin-top:14px; justify-content:flex-end;'},
+      el('button', {class:'btn btn-small', onclick: () => clear(host)}, 'Cancel'),
+      el('button', {class:'btn btn-small primary', onclick: () => {
+        if (pw.value === 'kuso') {
+          state = blankState();
+          saveState();
+          clear(host);
+          rerender();
+          window.scrollTo(0, 0);
+        } else {
+          msg.textContent = 'Wrong password.';
+          pw.value = '';
+          pw.focus();
+        }
+      }}, 'Reset')
+    )
+  );
+  mb.appendChild(modal);
+  host.appendChild(mb);
+  setTimeout(() => pw.focus(), 40);
+  pw.addEventListener('keydown', e => { if (e.key === 'Enter') modal.querySelector('.primary').click(); });
+}
+
+// ============================================================
+// BOOT
+// ============================================================
+document.getElementById('nextBtn').addEventListener('click', goNext);
+document.getElementById('backBtn').addEventListener('click', goBack);
+document.getElementById('saveBtn').addEventListener('click', () => {
+  const b = document.getElementById('saveBtn');
+  copyAndFlash(b, buildSaveLinkText());
+});
+document.getElementById('resetBtn').addEventListener('click', promptReset);
+
+loadState();
+rerender();
+</script>
+</body>
+</html>
